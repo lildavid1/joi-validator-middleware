@@ -1,6 +1,6 @@
 {
   "name": "joi-validator-middleware",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "main": "index.js",
   "types": "types/index.d.ts",
   "scripts": {
