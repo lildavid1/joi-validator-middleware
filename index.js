@@ -4,6 +4,9 @@ const constants = require('./libs/constants/constants')
 const response_message = require('./libs/constants/responseMessage')
 
 const validate = (schema) => async (request, response, next) => {
+  if(!schema && Object.keys(schema).length < 1){
+    throw new Error('Invalid validation schema')
+  }
   const action = { GET: 'params', POST: 'body', DELETE: 'body', PUT: 'body' }
 
   if (Object.keys(request.params).length === 0) {
