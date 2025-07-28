@@ -34,7 +34,7 @@ const validate = (schema) => async (request, response, next) => {
       response,
       {
         data: formattedErrors,
-        message: response_message.UNPROCESSABLE_CONTENT + `in the ${target}`,
+        message: response_message.UNPROCESSABLE_CONTENT + ` in the ${target}`,
       },
       constants.UNPROCESSABLE_ENTITY
     )
