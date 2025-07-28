@@ -1,39 +1,42 @@
-const Joi = require('joi')
-const sendResponse = require('./libs/sendResponse')
-const constants = require('./libs/constants/constants')
-const response_message = require('./libs/constants/responseMessage')
+const Joi = require("joi")
+const sendResponse = require("./libs/sendResponse")
+const constants = require("./libs/constants/constants")
+const response_message = require("./libs/constants/responseMessage")
 
 const validate = (schema) => async (request, response, next) => {
-  if(!schema && Object.keys(schema).length < 1){
-    throw new Error('Invalid validation schema')
+  if (!schema || Object.keys(schema).length === 0) {
+    throw new Error("Invalid validation schema")
   }
-  const action = { GET: 'params', POST: 'body', DELETE: 'body', PUT: 'body' }
 
-  if (Object.keys(request.params).length === 0) {
-    action.GET = 'query'
+  const method = request.method.toUpperCase()
+  let target = "body"
+
+  if (method === "GET") {
+    target = Object.keys(request.params || {}).length > 0 ? "params" : "query"
   }
 
   try {
-    await schema[action[request.method]].validateAsync(
-      {
-        ...request[action[request.method]],
-      },
-      { abortEarly: false },
-    )
-    next()
+    const joiSchema = schema[target]
+    if (!joiSchema) {
+      return next()
+    }
+
+    await joiSchema.validateAsync(request[target], { abortEarly: false })
+    return next()
   } catch (err) {
-    const formattedErrors = err.details.map((error) => {
-      return {
-        field: error.context.key,
-        message: error.message.replace(/['"]+/g, ''),
-      }
-    })
+    const formattedErrors = (err.details || []).map((error) => ({
+      field: error.context?.key,
+      message: error.message.replace(/['"]+/g, ""),
+    }))
 
     return sendResponse.sendError(
       request,
       response,
-      { data: formattedErrors, message: response_message.UNPROCESSABLE_CONTENT },
-      constants.UNPROCESSABLE_ENTITY,
+      {
+        data: formattedErrors,
+        message: response_message.UNPROCESSABLE_CONTENT + `in the ${target}`,
+      },
+      constants.UNPROCESSABLE_ENTITY
     )
   }
 }
